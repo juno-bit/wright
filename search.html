@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Image Gallery</title>
+<style>
+  body {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    background: #2c4d17;
+    margin: 0;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+  }
+  #container {
+    max-width: 960px;
+    width: 100%;
+    background: white;
+    padding: 20px 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 0.1);
+    position: relative;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-weight: 700;
+    color: #1a3d5d;
+  }
+  #search-input {
+    width: 100%;
+    font-size: 16px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    margin-bottom: 30px;
+    outline-color: #28a745;
+  }
+  .project-cards {
+    display: block; /* Removed grid */
+  }
+  .project-card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 22px rgb(0 0 0 / 0.1);
+    margin-bottom: 30px;
+    padding: 18px 24px 28px;
+    cursor: pointer;
+  }
+  .project-card:hover {
+    box-shadow: 0 8px 40px rgb(0 0 0 / 0.15);
+  }
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .project-title {
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: #1a3d5d;
+    text-transform: lowercase;
+  }
+  .project-summary {
+    font-size: 1rem;
+    color: #555;
+  }
+  .image-carousel {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 10px;
+  }
+  .image-carousel::-webkit-scrollbar {
+    height: 8px;
+  }
+  .image-carousel::-webkit-scrollbar-thumb {
+    background: rgba(40, 167, 69, 0.7);
+    border-radius: 4px;
+  }
+  .image-item {
+    position: relative;
+    flex: 0 0 auto;
+    width: 160px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    background: white;
+  }
+  .image-item img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    display: block;
+    border-radius: 12px 12px 0 0;
+  }
+  .image-caption {
+    background-color: rgba(0,0,0,0.7);
+    color: white;
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 0 0 12px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .phase-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .caption-text {
+    flex-grow: 1;
+  }
+  .no-results {
+    font-size: 20px;
+    color: #555;
+    text-align: center;
+    margin-top: 30px;
+  }
+
+  #slideshow-overlay {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    top: 0; left: 0; right:0; bottom:0;
+    background: rgba(0, 0, 0, 0.85);
+    justify-content: center;
+    align-items: center;
+  }
+  #slideshow-content {
+    position: relative;
+    max-width: 80vw;
+    max-height: 80vh;
+  }
+  #slideshow-content img {
+    width: 100%;
+    height: auto;
+    max-height: 80vh;
+    border-radius: 12px;
+    display: block;
+    margin: 0 auto;
+  }
+  #slideshow-caption {
+    margin-top: 10px;
+    color: white;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    user-select: none;
+  }
+  #close-slideshow {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    font-size: 32px;
+    color: white;
+    cursor: pointer;
+    font-weight: 900;
+    user-select: none;
+  }
+  #slideshow-nav {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .nav-arrow {
+    background: rgba(40, 167, 69, 0.8);
+    color: white;
+    font-size: 36px;
+    font-weight: 700;
+    cursor: pointer;
+    pointer-events: all;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 12px;
+    transition: background 0.3s ease;
+  }
+  .nav-arrow:hover {
+    background: #19692c;
+  }
+</style>
+</head>
+<body>
+
+<div id="container">
+  <h1>Search Images</h1>
+  <input type="text" id="search-input" placeholder="Type to search by project, date, or phase" autocomplete="off" />
+  <div id="gallery"></div>
+</div>
+
+<!-- Slideshow overlay -->
+<div id="slideshow-overlay">
+  <div id="slideshow-content">
+    <div id="close-slideshow">&times;</div>
+    <img id="slideshow-image" src="" alt="Slideshow image" />
+    <div id="slideshow-caption"></div>
+    <div id="slideshow-nav">
+      <div class="nav-arrow" id="prev-arrow">&#10094;</div>
+      <div class="nav-arrow" id="next-arrow">&#10095;</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const gallery = document.getElementById("gallery");
+  const searchInput = document.getElementById("search-input");
+
+  const slideshowOverlay = document.getElementById("slideshow-overlay");
+  const slideshowImage = document.getElementById("slideshow-image");
+  const slideshowCaption = document.getElementById("slideshow-caption");
+  const closeSlideshow = document.getElementById("close-slideshow");
+  const prevArrow = document.getElementById("prev-arrow");
+  const nextArrow = document.getElementById("next-arrow");
+
+  let images = JSON.parse(localStorage.getItem("savedImages") || "[]");
+  let currentSlideshowImages = [];
+  let currentSlideIndex = 0;
+
+  setInterval(() => {
+  window.location.reload();
+}, 5000);
+
+  function parseDateVal(dateStr) {
+    const parts = dateStr.split("/");
+    if (parts.length !== 3) return 0;
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = 2000 + parseInt(parts[2], 10);
+    return new Date(year, month, day).getTime();
+  }
+
+  const phaseOrder = ["Planning", "Foundation", "Structure", "Exterior", "Interior", "Completion"];
+  function phaseIndex(phase) {
+    const idx = phaseOrder.indexOf(phase);
+    return idx === -1 ? 999 : idx;
+  }
+
+  function groupByProject(imgs) {
+    return imgs.reduce((acc, img) => {
+      (acc[img.project] = acc[img.project] || []).push(img);
+      return acc;
+    }, {});
+  }
+
+  function filterImages(query) {
+    query = query.trim().toLowerCase();
+    if (!query) return images;
+    return images.filter(img =>
+      (img.project && img.project.toLowerCase().includes(query)) ||
+      (img.date && img.date.toLowerCase().includes(query)) ||
+      (img.phase && img.phase.toLowerCase().includes(query))
+    );
+  }
+
+  function renderGalleryGrouped(imgs) {
+    gallery.innerHTML = "";
+    if (imgs.length === 0) {
+      gallery.innerHTML = '<p class="no-results">No images match your search.</p>';
+      return;
+    }
+
+    const grouped = groupByProject(imgs);
+    const projects = Object.keys(grouped).sort();
+
+    projects.forEach(project => {
+      const imagesForProject = grouped[project];
+
+      imagesForProject.sort((a, b) => {
+        const dateDiff = parseDateVal(a.date) - parseDateVal(b.date);
+        if (dateDiff !== 0) return dateDiff;
+        return phaseIndex(a.phase) - phaseIndex(b.phase);
+      });
+
+      const card = document.createElement("div");
+      card.className = "project-card";
+      card.tabIndex = 0;
+      card.title = `Click to view slideshow of project: ${project}`;
+
+      const header = document.createElement("div");
+      header.className = "project-header";
+
+      const title = document.createElement("div");
+      title.className = "project-title";
+      title.textContent = project;
+
+      const summary = document.createElement("div");
+      summary.className = "project-summary";
+      summary.textContent = `${imagesForProject.length} image${imagesForProject.length > 1 ? 's' : ''}`;
+
+      header.appendChild(title);
+      header.appendChild(summary);
+
+      card.appendChild(header);
+
+      const carousel = document.createElement("div");
+      carousel.className = "image-carousel";
+
+      imagesForProject.forEach(imgObj => {
+        const imgEl = document.createElement("div");
+        imgEl.className = "image-item";
+
+        const img = document.createElement("img");
+        img.src = imgObj.base64;
+        img.alt = imgObj.name;
+
+        const caption = document.createElement("div");
+        caption.className = "image-caption";
+
+        const captionText = document.createElement("span");
+        captionText.className = "caption-text";
+        captionText.textContent = imgObj.date;
+
+        const phaseBadge = document.createElement("span");
+        phaseBadge.className = "phase-badge";
+        phaseBadge.textContent = imgObj.phase;
+
+        caption.appendChild(captionText);
+        caption.appendChild(phaseBadge);
+
+        imgEl.appendChild(img);
+        imgEl.appendChild(caption);
+        carousel.appendChild(imgEl);
+      });
+
+      card.appendChild(carousel);
+
+      card.addEventListener("click", () => {
+        openSlideshow(imagesForProject);
+      });
+
+      gallery.appendChild(card);
+    });
+  }
+
+  // Slideshow functions
+
+  function openSlideshow(projectImages) {
+    currentSlideshowImages = projectImages;
+    currentSlideIndex = 0;
+    updateSlideshow();
+    slideshowOverlay.style.display = "flex";
+  }
+
+  function updateSlideshow() {
+    const imgObj = currentSlideshowImages[currentSlideIndex];
+    slideshowImage.src = imgObj.base64;
+    slideshowImage.alt = imgObj.name;
+    slideshowCaption.textContent = `${imgObj.project} | ${imgObj.date} | ${imgObj.phase}`;
+  }
+
+  function closeSlideshowFunc() {
+    slideshowOverlay.style.display = "none";
+  }
+
+  function prevSlide() {
+    currentSlideIndex = (currentSlideIndex - 1 + currentSlideshowImages.length) % currentSlideshowImages.length;
+    updateSlideshow();
+  }
+
+  function nextSlide() {
+    currentSlideIndex = (currentSlideIndex + 1) % currentSlideshowImages.length;
+    updateSlideshow();
+  }
+
+  closeSlideshow.addEventListener("click", closeSlideshowFunc);
+  prevArrow.addEventListener("click", prevSlide);
+  nextArrow.addEventListener("click", nextSlide);
+
+  // Close slideshow on overlay click (but not on image or controls)
+  slideshowOverlay.addEventListener("click", e => {
+    if (e.target === slideshowOverlay) closeSlideshowFunc();
+  });
+
+  // Keyboard navigation for slideshow
+  document.addEventListener("keydown", e => {
+    if (slideshowOverlay.style.display === "flex") {
+      if (e.key === "ArrowLeft") prevSlide();
+      else if (e.key === "ArrowRight") nextSlide();
+      else if (e.key === "Escape") closeSlideshowFunc();
+    }
+  });
+
+  renderGalleryGrouped(images);
+
+  searchInput.addEventListener("input", e => {
+    const filteredImages = filterImages(e.target.value);
+    renderGalleryGrouped(filteredImages);
+  });
+</script>
+
+</body>
+</html>

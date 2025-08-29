@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wright Inspires - Junior Architect Dashboard</title>
+    <style>
+      body {
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        background-color: #2c4d17;
+        min-height: 100vh;
+        color: #d1fae5;
+        margin: 0;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+      header h1 {
+        font-size: 3rem;
+        margin: 0;
+        font-weight: bold;
+        flex-grow: 1;
+        text-align: center;
+        color: #bbf7d0;
+      }
+      nav a {
+        color: #a7f3d0;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 1.1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+      }
+      nav a:hover {
+        border-color: #10b981;
+        background-color: #10b981;
+        color: white;
+      }
+      nav.left {
+        order: -1;
+      }
+      nav.right {
+        order: 1;
+      }
+      #uploadSection {
+        margin: 0 auto 2rem;
+        text-align: center;
+        color: #bbf7d0;
+      }
+      #uploadSection a {
+        color: #a7f3d0;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 1.1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+      }
+      #uploadSection a:hover {
+        border-color: #10b981;
+        background-color: #10b981;
+        color: white;
+      }
+      .task-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      .task-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        color: #166534;
+        box-shadow: 0 4px 7px rgba(0, 0, 0, 0.1);
+        position: relative;
+        min-height: 130px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .task-title {
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-bottom: 0.25rem;
+      }
+      .priority-badge {
+        padding: 3px 8px;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: white;
+        display: inline-block;
+        margin-top: 5px;
+      }
+      .high {
+        background: #dc2626;
+      }
+      .medium {
+        background: #f59e0b;
+      }
+      .low {
+        background: #15803d;
+      }
+      .intern-task {
+        opacity: 0.9;
+      }
+      .task-meta {
+        font-size: 0.875rem;
+      }
+      .task-actions {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 1rem;
+      }
+      @media (min-width: 1024px) and (min-aspect-ratio: 4/3) {
+        .task-grid {
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+      }
+      @media (max-width: 1023px) or (max-aspect-ratio: 3/4) {
+        .task-grid {
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="left">
+        <a href="proj.html">Home</a>
+      </nav>
+      <h1>Wright Inspires - Junior Architect Dashboard</h1>
+      <nav class="right">
+        <a href="login.html">Logout</a>
+      </nav>
+    </header>
+
+    <section id="uploadSection">
+      <div>
+        <a href="file:///C:/Users/prady/Documents/Work/Alaiy/Projects/Live/36.%20WFX/wetransfer_buyer-fomat_2025-04-24_0706/sendgb-xqh1ZUvuD7F/Pdfs%20and%20Sample%20Mapping/H&M/image%20gallery.html">Upload Images</a>
+      </div>
+    </section>
+
+    <section id="tasks">
+      <h2 style="color:#bbf7d0; margin-bottom: 1rem;">Your Assigned Tasks</h2>
+      <div class="task-grid" id="taskGrid"></div>
+    </section>
+
+    <script>
+      const taskGrid = document.getElementById('taskGrid');
+
+      const defaultTasks = [
+        {
+          id: 1,
+          title: 'Ambara House - Final Drawings',
+          description: 'Complete architectural drawings for Ambara House project.',
+          priority: 'high',
+          dueDate: '2025-09-15',
+          assignee: 'chief architect'
+        },
+        {
+          id: 2,
+          title: 'Material Sourcing - Reclaimed Wood',
+          description: 'Source sustainable reclaimed wood for interior paneling.',
+          priority: 'medium',
+          dueDate: '2025-09-20',
+          assignee: 'intern'
+        },
+        {
+          id: 3,
+          title: 'Site Visit - Kota Stone Installation',
+          description: 'Supervise Kota stone installation at the site.',
+          priority: 'medium',
+          dueDate: '2025-09-25',
+          assignee: 'chief architect'
+        },
+        {
+          id: 4,
+          title: '3D Model - Client Presentation',
+          description: 'Prepare 3D model renderings for client meeting.',
+          priority: 'high',
+          dueDate: '2025-09-18',
+          assignee: 'junior architect'
+        },
+        {
+          id: 5,
+          title: 'Landscape Plan Review',
+          description: 'Review and provide feedback on landscape design drafts.',
+          priority: 'low',
+          dueDate: '2025-09-30',
+          assignee: 'junior architect'
+        }
+      ];
+
+      let tasks = JSON.parse(localStorage.getItem('tasks')) || defaultTasks;
+
+      function loadTasks() {
+        if (!tasks || tasks.length === 0) {
+          taskGrid.innerHTML = '<p style="color:#bbf7d0; font-size:1.2rem; text-align:center;">No tasks assigned to you yet.</p>';
+          return;
+        }
+        const juniorTasks = tasks.filter(task => task.assignee.toLowerCase() === 'junior architect');
+        if (juniorTasks.length === 0) {
+          taskGrid.innerHTML = '<p style="color:#bbf7d0; font-size:1.2rem; text-align:center;">No tasks assigned to you.</p>';
+          return;
+        }
+        taskGrid.innerHTML = juniorTasks
+          .map(
+            task => `
+          <div class="task-card intern-task" tabindex="0" aria-label="Task: ${task.title}, priority: ${task.priority}">
+            <div class="task-title">${task.title}</div>
+            <div>${task.description}</div>
+            <div class="priority-badge ${task.priority}">
+              ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
+            </div>
+            <div class="task-meta">Due: <strong>${task.dueDate || 'None'}</strong></div>
+          </div>
+        `
+          )
+          .join('');
+      }
+
+      // Listen for storage changes to update tasks in real-time
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'tasks') {
+          tasks = JSON.parse(e.newValue) || defaultTasks;
+          loadTasks();
+        }
+      });
+
+      loadTasks();
+    </script>
+  </body>
+</html>

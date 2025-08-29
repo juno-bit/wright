@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Responsive Image Gallery with Individual Tags per File</title>
+<style>
+  body {
+    font-family: 'Trebuchet MS', Arial, sans-serif;
+    margin: 0;
+    background: #2c4d17;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  #container {
+    background: white;
+    max-width: 960px;
+    width: 100%;
+    padding: 30px 40px;
+    border-radius: 6px;
+    box-sizing: border-box;
+    box-shadow: 0 0 15px rgba(0,0,0,0.15);
+  }
+  h1 {
+    margin-bottom: 25px;
+    text-align: center;
+    font-weight: bold;
+  }
+  #file-input {
+    display: none;
+  }
+  label[for="file-input"] {
+    display:inline-block;
+    background:#28a745;
+    color:#fff;
+    font-weight:600;
+    padding:12px 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 15px rgba(40,167,69,0.6);
+    transition: background-color 0.3s ease;
+  }
+  label[for="file-input"]:hover {
+    background:#218838;
+  }
+  #file-list {
+    max-height: 320px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 6px;
+  }
+  .file-entry {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+  .file-entry img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+  .file-entry .metadata {
+    flex-grow: 1;
+  }
+  .file-entry input[type=text],
+  .file-entry select {
+    width: 180px;
+    padding: 6px 10px;
+    margin-right: 8px;
+    border-radius: 4px;
+    border: 1px solid #bbb;
+    font-size: 13px;
+  }
+  #upload-btn {
+    width: 100%;
+    background: #28a745;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(40,167,69,0.7);
+    transition: background-color 0.3s ease;
+  }
+  #upload-btn:disabled {
+    background:#a3d3a0;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  #upload-btn:hover:not(:disabled) {
+    background:#218838;
+  }
+  #gallery {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
+    gap: 15px;
+  }
+  .gallery-item {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+    text-align: center;
+    overflow: hidden;
+  }
+  .gallery-item img {
+    max-width: 100%;
+    height: 140px;
+    object-fit: contain;
+  }
+  .caption {
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 6px 8px;
+    font-size: 14px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .delete-btn {
+    background: #dc3545;
+    border: none;
+    color: white;
+    padding: 4px 12px;
+    margin: 8px auto 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: block;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  .delete-btn:hover {
+    background: #a71d2a;
+  }
+</style>
+</head>
+<body>
+
+<div id="container">
+  <h1>Image Gallery Upload</h1>
+
+  <label for="file-input">Choose Files</label>
+  <input type="file" id="file-input" accept="image/*" multiple />
+
+  <div id="file-list">
+    <!-- Each selected file's metadata inputs will appear here -->
+  </div>
+
+  <button id="upload-btn" disabled>Upload</button>
+
+  <div id="gallery"></div>
+</div>
+
+<script>
+  const fileInput = document.getElementById("file-input");
+  const fileList = document.getElementById("file-list");
+  const uploadBtn = document.getElementById("upload-btn");
+  const gallery = document.getElementById("gallery");
+
+  let filesMetadata = [];
+
+  // Date format validation validator
+  function isValidDate(dateStr) {
+    const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/;
+    const match = dateStr.match(regex);
+    if (!match) return false;
+    const day = Number(match[1]);
+    const month = Number(match[2]);
+    const year = 2000 + Number(match[3]);
+    if (month < 1 || month > 12 || day < 1) return false;
+    const daysInMonth = new Date(year, month, 0).getDate();
+    return day <= daysInMonth;
+  }
+
+  // When files selected, show inputs for each file to add tags
+  fileInput.addEventListener("change", () => {
+    filesMetadata = []; // reset
+
+    fileList.innerHTML = "";
+
+    if (fileInput.files.length === 0) {
+      uploadBtn.disabled = true;
+      return;
+    }
+
+    Array.from(fileInput.files).forEach((file, idx) => {
+      const fileEntry = document.createElement("div");
+      fileEntry.className = "file-entry";
+
+      const preview = document.createElement("img");
+      preview.src = URL.createObjectURL(file);
+      preview.alt = file.name;
+
+      const metaDiv = document.createElement("div");
+      metaDiv.className = "metadata";
+
+      // Project input
+      const projectInput = document.createElement("input");
+      projectInput.type = "text";
+      projectInput.placeholder = "Project name";
+      projectInput.required = true;
+      projectInput.addEventListener("input", updateUploadButton);
+
+      // Date input
+      const dateInput = document.createElement("input");
+      dateInput.type = "text";
+      dateInput.placeholder = "Date (DD/MM/YY)";
+      dateInput.required = true;
+      dateInput.addEventListener("input", updateUploadButton);
+
+      // Phase select
+      const phaseSelect = document.createElement("select");
+      phaseSelect.required = true;
+      const phases = ["", "Planning", "Foundation", "Structure", "Exterior", "Interior", "Completion"];
+      phases.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p || "Select phase";
+        phaseSelect.appendChild(opt);
+      });
+      phaseSelect.addEventListener("change", updateUploadButton);
+
+      metaDiv.appendChild(projectInput);
+      metaDiv.appendChild(dateInput);
+      metaDiv.appendChild(phaseSelect);
+
+      fileEntry.appendChild(preview);
+      fileEntry.appendChild(metaDiv);
+
+      fileList.appendChild(fileEntry);
+
+      // Save references for validation and data retrieval before upload
+      filesMetadata.push({ file, projectInput, dateInput, phaseSelect });
+    });
+
+    updateUploadButton();
+  });
+
+  // Enable Upload only if all metadata for all files are valid
+  function updateUploadButton() {
+    const allValid = filesMetadata.length > 0 && filesMetadata.every(({projectInput, dateInput, phaseSelect}) => {
+      return projectInput.value.trim() !== "" &&
+             dateInput.value.trim() !== "" &&
+             isValidDate(dateInput.value.trim()) &&
+             phaseSelect.value.trim() !== "";
+    });
+    uploadBtn.disabled = !allValid;
+  }
+
+  uploadBtn.addEventListener("click", () => {
+    if (!confirm("Upload all images with the entered details?")) return;
+
+    let savedImages = JSON.parse(localStorage.getItem("savedImages") || "[]");
+
+    const readers = filesMetadata.map(({file, projectInput, dateInput, phaseSelect}) => {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          savedImages.push({
+            base64: reader.result,
+            name: file.name,
+            project: projectInput.value.trim(),
+            date: dateInput.value.trim(),
+            phase: phaseSelect.value.trim()
+          });
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then(() => {
+      savedImages = savedImages.filter(img => img !== undefined && img !== null);
+      localStorage.setItem("savedImages", JSON.stringify(savedImages));
+
+      fileList.innerHTML = "";
+      fileInput.value = "";
+      uploadBtn.disabled = true;
+      renderGallery(savedImages);
+    });
+  });
+
+  function renderGallery(images) {
+    gallery.innerHTML = "";
+
+    if (images.length === 0) {
+      gallery.innerHTML = "<p style='color: white; padding: 20px; text-align: center;'>No images uploaded yet</p>";
+      return;
+    }
+
+    images.forEach((imgObj, idx) => {
+      const item = document.createElement("div");
+      item.className = "gallery-item";
+
+      const img = document.createElement("img");
+      img.src = imgObj.base64;
+      img.alt = imgObj.name;
+
+      const caption = document.createElement("div");
+      caption.className = "caption";
+
+      const captionText = document.createElement("span");
+      captionText.className = "caption-text";
+      captionText.textContent = `${imgObj.project} | ${imgObj.date} | ${imgObj.phase}`;
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-btn";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.title = "Delete this image";
+      deleteBtn.onclick = () => deleteImage(idx);
+
+      caption.appendChild(captionText);
+      caption.appendChild(deleteBtn);
+
+      item.appendChild(img);
+      item.appendChild(caption);
+      gallery.appendChild(item);
+    });
+  }
+
+  function deleteImage(index) {
+    let savedImages = JSON.parse(localStorage.getItem("savedImages") || "[]");
+    savedImages.splice(index, 1);
+    localStorage.setItem("savedImages", JSON.stringify(savedImages));
+    renderGallery(savedImages);
+  }
+
+  window.addEventListener("load", () => {
+    const savedImages = JSON.parse(localStorage.getItem("savedImages") || "[]");
+    renderGallery(savedImages);
+  });
+</script>
+
+</body>
+</html>

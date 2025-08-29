@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wright Inspires - Login</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Trebuchet MS', Arial, sans-serif;
+        background: #14532d;
+        color: #d1e7d2;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .container {
+        background: #1f7a3a;
+        padding: 2.5rem 3rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        width: 100%;
+        max-width: 400px;
+      }
+      h1 {
+        font-weight: 700;
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        color: #d1e7d2;
+        letter-spacing: 0.06em;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      input[type="text"],
+      input[type="password"] {
+        background: #14532d;
+        border: 1px solid #4caf50;
+        color: #d1e7d2;
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+      }
+      input::placeholder {
+        color: #9bbd80;
+      }
+      input:focus {
+        background: #1f7a3a;
+        border-color: #86efac;
+        outline: none;
+      }
+      .btn-group {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      button {
+        background: #14532d;
+        border: none;
+        padding: 0.75rem 2.5rem;
+        color: #d1e7d2;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        transition: box-shadow 0.3s ease, background-color 0.3s ease;
+      }
+      button:hover {
+        box-shadow: 0 6px 15px rgba(5, 150, 105, 0.7);
+        background-color: #166534;
+      }
+      .btn-secondary {
+        box-shadow: none;
+        background-color: #1f7a3a;
+      }
+      .btn-secondary:hover {
+        background-color: #276b2a;
+        box-shadow: 0 4px 12px rgba(12, 96, 45, 0.8);
+      }
+      .error-message {
+        color: #ff7171;
+        text-align: center;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Wright Inspires</h1>
+      <form id="loginForm" action="javascript:void(0)">
+        <div class="error-message" id="errorMessage">Invalid username or password</div>
+        <input type="text" id="username" name="username" placeholder="Username" required />
+        <input type="password" id="password" name="password" placeholder="Password" required />
+        <div class="btn-group">
+          <button type="submit" class="btn-primary">Login</button>
+          <button type="reset" class="btn-primary" id="cancelBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      const errorMessage = document.getElementById('errorMessage');
+
+      document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const users = {
+          'chief architect': { password: '12345678', redirect: 'proj.html' },
+          'intern': { password: '87654321', redirect: 'intern.html' },
+          'junior architect': { password: '12348765', redirect: 'junior.html' }
+        };
+        if (users[username] && users[username].password === password) {
+          window.location.href = `${users[username].redirect}?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+        } else {
+          errorMessage.style.display = 'block';
+        }
+      });
+
+      document.getElementById('cancelBtn').addEventListener('click', () => {
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        errorMessage.style.display = 'none';
+      });
+
+      document.getElementById('password').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          document.querySelector('form').dispatchEvent(new Event('submit'));
+        }
+      });
+    </script>
+  </body>
+</html>
